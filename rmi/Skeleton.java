@@ -1,6 +1,13 @@
 package rmi;
 
 import java.net.*;
+import java.lang.NullPointerException;
+import java.lang.Error;
+import java.util.Arrays;
+import java.util.List;
+import java.lang.reflect.*;
+
+
 
 /** RMI skeleton
 
@@ -26,6 +33,10 @@ import java.net.*;
 */
 public class Skeleton<T>
 {
+    Class<T> c;
+    T server;
+    InetSocketAddress address;
+
     /** Creates a <code>Skeleton</code> with no initial server address. The
         address will be determined by the system when <code>start</code> is
         called. Equivalent to using <code>Skeleton(null)</code>.
@@ -45,9 +56,21 @@ public class Skeleton<T>
         @throws NullPointerException If either of <code>c</code> or
                                      <code>server</code> is <code>null</code>.
      */
-    public Skeleton(Class<T> c, T server)
+    public Skeleton(Class<T> c, T server) throws NullPointerException, Error
     {
-        throw new UnsupportedOperationException("not implemented");
+        if(server == null || c == null) {
+            throw new NullPointerException("Server and class specified to Skeleton must not be null");
+        } else {
+            Method[] methods = c.getMethods();
+            for(Method method : methods) {
+                List<Class<?>> exs = Arrays.asList(method.getExceptionTypes());
+                if(!exs.contains(RMIException.class)) {
+                    throw new Error("All methods for server class must throw RMIException");
+                }
+            }
+        }
+
+        this.c = c; this.server = server;
     }
 
     /** Creates a <code>Skeleton</code> with the given initial server address.
@@ -70,7 +93,8 @@ public class Skeleton<T>
      */
     public Skeleton(Class<T> c, T server, InetSocketAddress address)
     {
-        throw new UnsupportedOperationException("not implemented");
+        this(c, server);
+        this.address = address;
     }
 
     /** Called when the listening thread exits.
