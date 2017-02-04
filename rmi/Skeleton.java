@@ -1,6 +1,13 @@
 package rmi;
 
 import java.net.*;
+import java.lang.NullPointerException;
+import java.lang.Error;
+import java.util.Arrays;
+import java.util.List;
+import java.lang.reflect.*;
+
+
 
 /** RMI skeleton
 
@@ -29,7 +36,7 @@ public class Skeleton<T>
     Class<T> c;
     T server;
     InetSocketAddress address;
-    
+
     /** Creates a <code>Skeleton</code> with no initial server address. The
         address will be determined by the system when <code>start</code> is
         called. Equivalent to using <code>Skeleton(null)</code>.
@@ -52,13 +59,13 @@ public class Skeleton<T>
     public Skeleton(Class<T> c, T server) throws NullPointerException, Error
     {
         if(server == null || c == null) {
-            throw NullPointerException("Server and class specified to Skeleton must not be null");
+            throw new NullPointerException("Server and class specified to Skeleton must not be null");
         } else {
             Method[] methods = c.getMethods();
             for(Method method : methods) {
                 List<Class<?>> exs = Arrays.asList(method.getExceptionTypes());
                 if(!exs.contains(RMIException.class)) {
-                    throw Error("All methods for server class must throw RMIException");
+                    throw new Error("All methods for server class must throw RMIException");
                 }
             }
         }
