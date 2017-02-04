@@ -177,7 +177,7 @@ public class Skeleton<T>
 
             // create server socket and start listening thread
             ServerSocket servSocket = new ServerSocket(address.getPort(), MAX_Q_CONNECTIONS, address.getAddress());
-            listenThread = new Thread(new SocketListener<T>(servSocket, this));
+            listenThread            = new Thread(new SocketListener<T>(servSocket, this));
             listenThread.start();
 
         } catch (IOException e) {

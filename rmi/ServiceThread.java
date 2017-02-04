@@ -9,7 +9,7 @@ class ServiceThread<T> implements Runnable {
 	private Skeleton<T> skeleton;
 
 	public ServiceThread(Socket socket, Skeleton<T> skeleton) {
-		this.socket = socket;
+		this.socket   = socket;
 		this.skeleton = skeleton;
 	}
 	
@@ -17,7 +17,7 @@ class ServiceThread<T> implements Runnable {
 		// get in/out streams
 		try {
 			ObjectOutputStream ostream = new ObjectOutputStream(socket.getOutputStream());
-			ObjectInputStream istream = new ObjectInputStream(socket.getInputStream());
+			ObjectInputStream istream  = new ObjectInputStream(socket.getInputStream());
 
 		} catch(Exception e) {
 			skeleton.service_error(new RMIException("Error with request", e));
