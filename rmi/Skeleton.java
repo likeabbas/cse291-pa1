@@ -6,6 +6,7 @@ import java.lang.Error;
 import java.util.Arrays;
 import java.util.List;
 import java.lang.reflect.*;
+import java.lang.InterruptedException;
 import java.io.IOException;
 
 
@@ -37,8 +38,11 @@ public class Skeleton<T>
     private Class<T> c;
     private T server;
     private InetSocketAddress address;
-    private Runnable listener;
+    private SocketListener<T> listener;
+    private Thread listenerThread;
     private boolean isRunning = false;
+    private ThreadGroup serviceGroup;
+    private ServerSocket servSocket;
 
     private static final int MAX_Q_CONNECTIONS = 10;
 
@@ -122,6 +126,10 @@ public class Skeleton<T>
      */
     protected void stopped(Throwable cause)
     {
+        if(cause == null) {
+            isRunning = false;
+        }
+        serviceGroup = null;
     }
 
     /** Called when an exception occurs at the top level in the listening
@@ -177,10 +185,11 @@ public class Skeleton<T>
         try {
 
             // create server socket and start listening thread
-            ServerSocket servSocket = new ServerSocket(address.getPort(), MAX_Q_CONNECTIONS, address.getAddress());
+            servSocket = new ServerSocket(address.getPort(), MAX_Q_CONNECTIONS, address.getAddress());
             listener = new SocketListener<T>(servSocket, this);
-            new Thread(listener).start();
-
+            listenerThread = new Thread(listener);
+            this.serviceGroup = new ThreadGroup("serviceThreads");
+            listenerThread.start();
             this.isRunning = true;
 
 
@@ -201,8 +210,29 @@ public class Skeleton<T>
      */
     public synchronized void stop()
     {
-        if (isRunning) {
-            ((SocketListener<T>)listener).stopMe();
+        try {
+            if (isRunning) {
+                listener.stopMe();
+                System.err.println("about to close socket");
+                servSocket.close();
+                listenerThread.join();
+
+                int count = serviceGroup.activeCount();
+                Thread threads[] = new Thread[count];
+                for(Thread thread : threads) {
+                    thread.join();
+                }
+
+                stopped(null);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch(IOException e) {
+            e.printStackTrace();
         }
+    }
+
+    public ThreadGroup getServiceGroup() {
+        return this.serviceGroup;
     }
 }

@@ -48,9 +48,13 @@ public class SkeletonTest extends Test
     @Override
     protected void perform() throws TestFailed
     {
+        System.err.println("TEST 1");
         ensureClassRejected();
+        System.err.println("TEST 2");
         ensureNonRemoteInterfaceRejected();
+        System.err.println("TEST 3");
         ensureNullPointerExceptions();
+        System.err.println("TEST 4");
         ensureSkeletonRuns();
     }
 
@@ -64,10 +68,12 @@ public class SkeletonTest extends Test
     {
         if(probe())
             throw new TestFailed("skeleton accepts connections before start");
-
+        System.err.println("before calling start");
         try
         {
+            System.err.println("before calling start");
             skeleton.start();
+            System.err.println("after calling start");
         }
         catch(RMIException e)
         {
@@ -77,7 +83,9 @@ public class SkeletonTest extends Test
         if(!probe())
             throw new TestFailed("skeleton refuses connections after start");
 
+        System.err.println("before calling STOP");
         skeleton.stop();
+        System.err.println("after calling STOP");
 
         synchronized(this)
         {
@@ -116,7 +124,7 @@ public class SkeletonTest extends Test
             socket.connect(address);
         }
         catch(Exception e)
-        {
+        { 
             return false;
         }
 
@@ -300,6 +308,7 @@ public class SkeletonTest extends Test
                                  "constructor threw an unexpected exception " +
                                  "when given null for second argument", t);
         }
+        System.err.println("end null pointer");
     }
 
     /** Derivative of <code>Skeleton</code> which notifies the test when it

@@ -22,11 +22,13 @@ class SocketListener<T> implements Runnable {
 		while(!this.finished) {
 
 			try {
-
+				System.err.println("before accept call");
 				Socket socket = servSock.accept();
+				System.err.println("after accept call");
+				new Thread(skeleton.getServiceGroup(), new ServiceThread<T>(socket, skeleton)).start();
 
-				new Thread(new ServiceThread<T>(socket, skeleton)).start();
-
+			} catch(SocketException e) {
+				System.out.println("socket exception");
 			} catch(Exception e) {
 				skeleton.listen_error(e);
 			}
