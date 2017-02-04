@@ -6,6 +6,7 @@ import java.lang.Error;
 import java.util.Arrays;
 import java.util.List;
 import java.lang.reflect.*;
+import java.io.IOException;
 
 
 
@@ -33,9 +34,12 @@ import java.lang.reflect.*;
 */
 public class Skeleton<T>
 {
-    Class<T> c;
-    T server;
-    InetSocketAddress address;
+    private Class<T> c;
+    private T server;
+    private InetSocketAddress address;
+    private Thread listenThread;
+
+    private static final int MAX_Q_CONNECTIONS = 10;
 
     /** Creates a <code>Skeleton</code> with no initial server address. The
         address will be determined by the system when <code>start</code> is
@@ -165,7 +169,21 @@ public class Skeleton<T>
      */
     public synchronized void start() throws RMIException
     {
-        throw new UnsupportedOperationException("not implemented");
+        // make sure we have an address
+        if(address == null) {
+
+        }
+        try {
+
+            // create server socket and start listening thread
+            ServerSocket servSocket = new ServerSocket(address.getPort(), MAX_Q_CONNECTIONS, address.getAddress());
+            listenThread = new Thread(new SocketListener<T>(servSocket, this));
+            listenThread.start();
+
+        } catch (IOException e) {
+            throw new RMIException("failed to start Skeleton server", e);
+        }
+
     }
 
     /** Stops the skeleton server, if it is already running.
