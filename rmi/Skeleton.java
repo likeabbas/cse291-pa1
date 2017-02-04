@@ -37,7 +37,8 @@ public class Skeleton<T>
     private Class<T> c;
     private T server;
     private InetSocketAddress address;
-    private Thread listenThread;
+    private Runnable listener;
+    private boolean isRunning = false;
 
     private static final int MAX_Q_CONNECTIONS = 10;
 
@@ -177,8 +178,11 @@ public class Skeleton<T>
 
             // create server socket and start listening thread
             ServerSocket servSocket = new ServerSocket(address.getPort(), MAX_Q_CONNECTIONS, address.getAddress());
-            listenThread            = new Thread(new SocketListener<T>(servSocket, this));
-            listenThread.start();
+            listener = new SocketListener<T>(servSocket, this);
+            new Thread(listener).start();
+
+            this.isRunning = true;
+
 
         } catch (IOException e) {
             throw new RMIException("failed to start Skeleton server", e);
@@ -197,6 +201,8 @@ public class Skeleton<T>
      */
     public synchronized void stop()
     {
-        throw new UnsupportedOperationException("not implemented");
+        if (isRunning) {
+            ((SocketListener<T>)listener).stopMe();
+        }
     }
 }
