@@ -66,6 +66,7 @@ public class SkeletonTest extends Test
      */
     private void ensureSkeletonRuns() throws TestFailed
     {
+        System.err.println("inside skeletonRuns");
         if(probe())
             throw new TestFailed("skeleton accepts connections before start");
         System.err.println("before calling start");
@@ -95,7 +96,9 @@ public class SkeletonTest extends Test
                 {
                     wait();
                 }
-                catch(InterruptedException e) { }
+                catch(InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -121,7 +124,9 @@ public class SkeletonTest extends Test
 
         try
         {
+            System.err.println("before connect in probe");
             socket.connect(address);
+            System.err.println("after connect in probe");
         }
         catch(Exception e)
         { 
@@ -142,6 +147,7 @@ public class SkeletonTest extends Test
     @Override
     protected void clean()
     {
+        System.err.println("inside clean");
         skeleton.stop();
         wake();
     }

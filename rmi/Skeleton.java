@@ -101,9 +101,19 @@ public class Skeleton<T>
                                      <code>server</code> is <code>null</code>.
      */
     public Skeleton(Class<T> c, T server, InetSocketAddress address)
+        throws NullPointerException, Error
     {
         this(c, server);
         this.address = address;
+        try {
+          servSocket = new ServerSocket();
+          servSocket.bind(address);
+          servSocket.close();
+        } catch (IOException e) {
+            //throw e;
+            e.printStackTrace();
+        }
+
     }
 
     /** Called when the listening thread exits.
@@ -129,6 +139,7 @@ public class Skeleton<T>
         if(cause == null) {
             isRunning = false;
         }
+        isRunning = false;
         serviceGroup = null;
     }
 
@@ -149,6 +160,7 @@ public class Skeleton<T>
      */
     protected boolean listen_error(Exception exception)
     {
+        stopped(null);
         return false;
     }
 
@@ -178,12 +190,13 @@ public class Skeleton<T>
      */
     public synchronized void start() throws RMIException
     {
+        System.err.println("beginning of start");
         // make sure we have an address
         if(address == null) {
+            System.err.println("address is null");
 
         }
         try {
-
             // create server socket and start listening thread
             servSocket = new ServerSocket(address.getPort(), MAX_Q_CONNECTIONS, address.getAddress());
             listener = new SocketListener<T>(servSocket, this);
@@ -210,10 +223,14 @@ public class Skeleton<T>
      */
     public synchronized void stop()
     {
+        System.err.println("inside stop");
+
+        this.stopped(null);
         try {
+            System.err.println("check running");
             if (isRunning) {
-                listener.stopMe();
                 System.err.println("about to close socket");
+                listener.stopMe();
                 servSocket.close();
                 listenerThread.join();
 
@@ -224,12 +241,15 @@ public class Skeleton<T>
                 }
 
                 stopped(null);
+                System.err.println("after stopped");
+
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch(IOException e) {
             e.printStackTrace();
         }
+        System.err.println("end of stop");
     }
 
     public ThreadGroup getServiceGroup() {
