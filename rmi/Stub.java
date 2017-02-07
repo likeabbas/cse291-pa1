@@ -191,20 +191,22 @@ public abstract class Stub
                 socket.connect(address);
 
                 ObjectOutputStream ostream = new ObjectOutputStream(socket.getOutputStream());
+                ostream.flush();
                 ObjectInputStream  istream = new ObjectInputStream(socket.getInputStream());
 
                 for(Object arg : args) {
                     if (!(arg instanceof Serializable)) {
-                        // Throw
                         throw new RMIException("All objects passed to method must be serializable");
                     }
                 }
 
                 ostream.writeObject(method.getName());
+                ostream.writeInt(args.length);
 
                 for(Object arg : args) {
                     ostream.writeObject(arg);
                 }
+
 
             } catch (Exception e) {
                 e.printStackTrace();

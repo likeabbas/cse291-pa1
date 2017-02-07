@@ -17,7 +17,19 @@ class ServiceThread<T> implements Runnable {
 		// get in/out streams
 		try {
 			ObjectOutputStream ostream = new ObjectOutputStream(socket.getOutputStream());
+            ostream.flush();
 			ObjectInputStream istream  = new ObjectInputStream(socket.getInputStream());
+
+            String methodName = (String) istream.readObject();
+            System.err.println("methodName: " + methodName);
+            
+            int argsLength = (int) istream.readInt();
+            System.err.println("argsLength: " + argsLength);
+
+            Object[] args = new Object[argsLength];
+            for (int i = 0; i < argsLength; i++) {
+                args[i] = istream.readObject();
+            }
 
 		} catch(Exception e) {
 			skeleton.service_error(new RMIException("Error with request", e));
