@@ -1,6 +1,12 @@
 package rmi;
 
 import java.net.*;
+import java.lang.IllegalStateException;
+import java.util.Arrays;
+import java.lang.reflect.*;
+import java.util.List;
+
+
 
 /** RMI stub factory.
 
@@ -48,7 +54,26 @@ public abstract class Stub
     public static <T> T create(Class<T> c, Skeleton<T> skeleton)
         throws UnknownHostException
     {
-        throw new UnsupportedOperationException("not implemented");
+        if(c == null || skeleton == null) {
+            throw new NullPointerException();
+        }
+        
+        if(!skeleton.isRemoteInterface(c)) {
+            throw new Error("All methods for class c must throw RMIException");
+        }
+
+        //TODO maybe separate running
+        if(skeleton.getAddress() == null) {
+            throw new IllegalStateException();
+        }
+
+        // check for no address found for local host
+        InvocationHandler handler = new RMIInvocationHandler(skeleton.getAddress());
+        T t = (T) java.lang.reflect.Proxy.newProxyInstance(c.getClassLoader(),
+                                          new Class[] { c },
+                                          handler);
+        return t;
+
     }
 
     /** Creates a stub, given a skeleton with an assigned address and a hostname
@@ -84,7 +109,22 @@ public abstract class Stub
     public static <T> T create(Class<T> c, Skeleton<T> skeleton,
                                String hostname)
     {
-        throw new UnsupportedOperationException("not implemented");
+        if(c == null || skeleton == null || hostname == null) {
+            throw new NullPointerException();
+        }
+        if(!skeleton.isRemoteInterface(c)) {
+            throw new Error("All methods for class c must throw RMIException");
+        }
+        if(skeleton.getServerSocket().getLocalPort() == -1) {
+            throw new IllegalStateException();
+        }
+
+        // check for no address found for local host
+        InvocationHandler handler = new RMIInvocationHandler(skeleton.getAddress());
+        T t = (T) java.lang.reflect.Proxy.newProxyInstance(c.getClassLoader(),
+                                          new Class[] { c },
+                                          handler);
+        return t;
     }
 
     /** Creates a stub, given the address of a remote server.
@@ -106,6 +146,45 @@ public abstract class Stub
      */
     public static <T> T create(Class<T> c, InetSocketAddress address)
     {
-        throw new UnsupportedOperationException("not implemented");
+        if(c == null || address == null) {
+            throw new NullPointerException();
+        }
+
+        Method[] methods = c.getMethods();
+        for(Method method : methods) {
+            List<Class<?>> exs = Arrays.asList(method.getExceptionTypes());
+            if(!exs.contains(RMIException.class)) {
+                throw new Error("All methods for class c must throw RMIException");
+            }
+        }
+
+
+        // check for no address found for local host
+        InvocationHandler handler = new RMIInvocationHandler(address);
+        T t = (T) java.lang.reflect.Proxy.newProxyInstance(c.getClassLoader(),
+                                          new Class[] { c },
+                                          handler);
+        return proxy;
+
+
+    }
+
+    private static class RMIInvocationHandler implements InvocationHandler {
+        private InetSocketAddress address;
+        public RMIInvocationHandler(InetSocketAddress address) {
+            this.address = address;
+
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) {
+            //Socket socket = new Socket();
+            //socket.connect(address);
+
+            return null;
+        }
+
     }
 }
+
+

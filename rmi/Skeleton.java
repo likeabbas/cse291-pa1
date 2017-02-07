@@ -71,17 +71,13 @@ public class Skeleton<T>
     {
         if(server == null || c == null) {
             throw new NullPointerException("Server and class specified to Skeleton must not be null");
-        } else {
-            Method[] methods = c.getMethods();
-            for(Method method : methods) {
-                List<Class<?>> exs = Arrays.asList(method.getExceptionTypes());
-                if(!exs.contains(RMIException.class)) {
-                    throw new Error("All methods for server class must throw RMIException");
-                }
-            }
+        } 
+
+        if(!isRemoteInterface(c)) {
+            throw new Error("All methods for server class must throw RMIException");
         }
 
-        this.c = c; this.server = server;
+        this.c = c; this.server = server; this.address = null;
     }
 
     /** Creates a <code>Skeleton</code> with the given initial server address.
@@ -110,6 +106,16 @@ public class Skeleton<T>
 
     }
 
+    public boolean isRemoteInterface(Class<T> c) {
+        Method[] methods = c.getMethods();
+        for(Method method : methods) {
+            List<Class<?>> exs = Arrays.asList(method.getExceptionTypes());
+            if(!exs.contains(RMIException.class)) {
+                return false;
+            }
+        }
+        return true;
+    }
     /** Called when the listening thread exits.
 
         <p>
@@ -185,16 +191,17 @@ public class Skeleton<T>
     public synchronized void start() throws RMIException
     {
         System.err.println("beginning of start");
-        // make sure we have an address
-        if(address == null) {
-            System.err.println("address is null");
-
-        }
         try {
-            // create server socket and start listening thread
-            System.err.println("before new server socket");
-            servSocket = new ServerSocket();
-            servSocket.bind(address);
+            // make sure we have an address
+            if(address == null) {
+                System.err.println("address is null");
+                servSocket = new ServerSocket(0);
+                //address = servSocket.getLocalSocketAddress();
+            } else {
+                servSocket = new ServerSocket();
+                servSocket.bind(address);
+            }
+            
             listener = new SocketListener<T>(servSocket, this);
             listenerThread = new Thread(listener);
             serviceThreads = new Vector<Thread>();
@@ -256,8 +263,21 @@ public class Skeleton<T>
         //this.stopped(null);
         System.err.println("end of stop");
     }
+
+    public InetSocketAddress getAddress() {
+        return address;
+    }
+
+    public boolean isRunning() {
+        return isRunning;
+    }
     
     public Vector<Thread> getServiceThreads() {
         return serviceThreads;
     }
+
+    public ServerSocket getServerSocket() {
+        return servSocket;
+    }
+
 }

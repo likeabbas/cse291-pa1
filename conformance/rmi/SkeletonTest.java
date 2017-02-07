@@ -3,6 +3,8 @@ package conformance.rmi;
 import test.*;
 import rmi.*;
 import java.net.*;
+import java.lang.NullPointerException;
+import java.lang.Error;
 
 
 /** Performs basic tests on the public interface of {@link rmi.Skeleton}.
