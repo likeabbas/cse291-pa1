@@ -5,6 +5,12 @@ import java.lang.IllegalStateException;
 import java.util.Arrays;
 import java.lang.reflect.*;
 import java.util.List;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+
+
+
 
 
 
@@ -178,8 +184,31 @@ public abstract class Stub
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
-            //Socket socket = new Socket();
-            //socket.connect(address);
+            Socket socket = new Socket();
+
+            try {
+
+                socket.connect(address);
+
+                ObjectOutputStream ostream = new ObjectOutputStream(socket.getOutputStream());
+                ObjectInputStream  istream = new ObjectInputStream(socket.getInputStream());
+
+                for(Object arg : args) {
+                    if (!(arg instanceof Serializable)) {
+                        // Throw
+                        throw new RMIException("All objects passed to method must be serializable");
+                    }
+                }
+
+                ostream.writeObject(method.getName());
+
+                for(Object arg : args) {
+                    ostream.writeObject(arg);
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             return null;
         }
