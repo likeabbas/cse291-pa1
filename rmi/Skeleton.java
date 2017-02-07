@@ -8,6 +8,7 @@ import java.util.List;
 import java.lang.reflect.*;
 import java.lang.InterruptedException;
 import java.io.IOException;
+import java.util.Vector;
 
 
 
@@ -42,6 +43,7 @@ public class Skeleton<T>
     private Thread listenerThread;
     private boolean isRunning = false;
     private ThreadGroup serviceGroup;
+    private Vector<Thread> serviceThreads;
     private ServerSocket servSocket;
 
     private static final int MAX_Q_CONNECTIONS = 10;
@@ -128,11 +130,11 @@ public class Skeleton<T>
      */
     protected void stopped(Throwable cause)
     {
+        System.err.println("WHYYY ARE WE CALLING DEFAULT STOPPED!!!");
         if(cause == null) {
             isRunning = false;
         }
         isRunning = false;
-        serviceGroup = null;
     }
 
     /** Called when an exception occurs at the top level in the listening
@@ -190,14 +192,14 @@ public class Skeleton<T>
         }
         try {
             // create server socket and start listening thread
-            servSocket = new ServerSocket(address.getPort(), MAX_Q_CONNECTIONS, address.getAddress());
+            System.err.println("before new server socket");
+            servSocket = new ServerSocket();
             servSocket.bind(address);
             listener = new SocketListener<T>(servSocket, this);
             listenerThread = new Thread(listener);
-            this.serviceGroup = new ThreadGroup("serviceThreads");
+            serviceThreads = new Vector<Thread>();
             listenerThread.start();
             this.isRunning = true;
-
 
         } catch (IOException e) {
             throw new RMIException("failed to start Skeleton server", e);
@@ -232,14 +234,10 @@ public class Skeleton<T>
                 }
 
                 
-/*
-                int count = serviceGroup.activeCount();
-                Thread threads[] = new Thread[count];
-                for(Thread thread : threads) {
+                for(Thread thread : serviceThreads) {
                     thread.join();
                 }
-*/
-                
+                serviceThreads.clear();
                 System.err.println("after stopped");
 
             }
@@ -258,7 +256,7 @@ public class Skeleton<T>
         System.err.println("end of stop");
     }
     
-    public ThreadGroup getServiceGroup() {
-        return this.serviceGroup;
+    public Vector<Thread> getServiceThreads() {
+        return serviceThreads;
     }
 }
