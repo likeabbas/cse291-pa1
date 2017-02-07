@@ -25,7 +25,11 @@ class SocketListener<T> implements Runnable {
 				System.err.println("before accept call");
 				Socket socket = servSock.accept();
 				System.err.println("after accept call");
-				new Thread(skeleton.getServiceGroup(), new ServiceThread<T>(socket, skeleton)).start();
+
+				// not sure if needed, close on accept causes SocketException
+				if(socket != null) {
+					new Thread(skeleton.getServiceGroup(), new ServiceThread<T>(socket, skeleton)).start();
+				}
 
 			} catch(SocketException e) {
 				System.out.println("socket exception");

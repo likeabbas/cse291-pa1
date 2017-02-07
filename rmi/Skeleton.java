@@ -105,14 +105,6 @@ public class Skeleton<T>
     {
         this(c, server);
         this.address = address;
-        try {
-          servSocket = new ServerSocket();
-          servSocket.bind(address);
-          servSocket.close();
-        } catch (IOException e) {
-            //throw e;
-            e.printStackTrace();
-        }
 
     }
 
@@ -199,6 +191,7 @@ public class Skeleton<T>
         try {
             // create server socket and start listening thread
             servSocket = new ServerSocket(address.getPort(), MAX_Q_CONNECTIONS, address.getAddress());
+            servSocket.bind(address);
             listener = new SocketListener<T>(servSocket, this);
             listenerThread = new Thread(listener);
             this.serviceGroup = new ThreadGroup("serviceThreads");
@@ -225,33 +218,46 @@ public class Skeleton<T>
     {
         System.err.println("inside stop");
 
-        this.stopped(null);
         try {
             System.err.println("check running");
-            if (isRunning) {
+            if (true) {
+                isRunning = false;
                 System.err.println("about to close socket");
-                listener.stopMe();
-                servSocket.close();
-                listenerThread.join();
 
+                if(listener != null) {
+                    listener.stopMe();
+                    servSocket.close();
+                    listenerThread.join();
+                    stopped(null);
+                }
+
+                
+/*
                 int count = serviceGroup.activeCount();
                 Thread threads[] = new Thread[count];
                 for(Thread thread : threads) {
                     thread.join();
                 }
-
-                stopped(null);
+*/
+                
                 System.err.println("after stopped");
 
             }
         } catch (InterruptedException e) {
+            System.err.println("InterruptedException");
             e.printStackTrace();
+            stopped(e);
+
         } catch(IOException e) {
+            System.err.println("IOException");
             e.printStackTrace();
+            stopped(e);
         }
+
+        //this.stopped(null);
         System.err.println("end of stop");
     }
-
+    
     public ThreadGroup getServiceGroup() {
         return this.serviceGroup;
     }

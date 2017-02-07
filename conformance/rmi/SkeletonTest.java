@@ -336,6 +336,7 @@ public class SkeletonTest extends Test
         @Override
         protected void stopped(Throwable cause)
         {
+            System.err.println("stopped in test skeleton");
             wake();
         }
 
