@@ -233,11 +233,12 @@ public class Skeleton<T>
                     stopped(null);
                 }
 
-                
-                for(Thread thread : serviceThreads) {
-                    thread.join();
+                if(serviceThreads != null) {
+                    for(Thread thread : serviceThreads) {
+                        thread.join();
+                    }
+                    serviceThreads.clear();
                 }
-                serviceThreads.clear();
                 System.err.println("after stopped");
 
             }
