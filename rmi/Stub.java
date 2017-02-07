@@ -164,7 +164,7 @@ public abstract class Stub
         T t = (T) java.lang.reflect.Proxy.newProxyInstance(c.getClassLoader(),
                                           new Class[] { c },
                                           handler);
-        return proxy;
+        return t;
 
 
     }
