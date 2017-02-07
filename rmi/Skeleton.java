@@ -222,7 +222,7 @@ public class Skeleton<T>
 
         try {
             System.err.println("check running");
-            if (true) {
+            if (isRunning) {
                 isRunning = false;
                 System.err.println("about to close socket");
 
