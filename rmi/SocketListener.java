@@ -8,7 +8,7 @@ class SocketListener<T> implements Runnable {
 	private Skeleton<T> skeleton;
     private volatile boolean finished;
 
-	public SocketListener(Skeleton<T> skeleton) {
+	public SocketListener(ServerSocket servSock, Skeleton<T> skeleton) {
 		this.servSock = servSock;
 		this.skeleton = skeleton;
         this.finished = false;

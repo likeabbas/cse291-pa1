@@ -68,8 +68,8 @@ public class SkeletonTest extends Test
     private void ensureSkeletonRuns() throws TestFailed
     {
         System.err.println("inside skeletonRuns");
-        //if(probe())
-            //throw new TestFailed("skeleton accepts connections before start");
+        if(probe())
+            throw new TestFailed("skeleton accepts connections before start");
         System.err.println("before calling start");
         try
         {
