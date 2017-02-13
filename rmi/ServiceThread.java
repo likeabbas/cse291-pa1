@@ -38,16 +38,33 @@ class ServiceThread<T> implements Runnable {
                 }
                 
                 // TODO catch specific exception
-                System.err.println("getting method");
-                Method method = skeleton.getCls().getMethod(methodName, paramTypes);
-                System.err.println("after getting method");
-                T ror = skeleton.getRemoteObject();
-
-                boolean exceptionThrown = false;
                 Object result = null;
+                Method method = null;
+                boolean exceptionThrown = false;
+                System.err.println("getting method");
                 try {
-                    System.err.println("about to invoke " + method.getName());
-                    result = method.invoke(ror, args);
+                    method = skeleton.getCls().getMethod(methodName, paramTypes);
+                } catch (NoSuchMethodException e) {
+                    System.err.println("Inside NoSuchMethodException for getMethod in ServiceThread");
+                    exceptionThrown = true;
+                    result = new RMIException("No Such Method");
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                System.err.println("after getting method");
+                T ror = null;
+                if (!exceptionThrown)
+                    ror = skeleton.getRemoteObject();
+
+
+                try {
+                    if (!exceptionThrown) {
+                        System.err.println("about to invoke " + method.getName());
+                        System.err.println("really - about to invoke");
+                        result = method.invoke(ror, args);
+                    }
                     System.err.println("after invoke");
                 } catch (InvocationTargetException e) {
                     System.err.println("inside catch for invoke");

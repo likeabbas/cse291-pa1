@@ -213,7 +213,7 @@ interface ProxyDetails<T> {
     public InetSocketAddress getServerAddress();
 }
 
-class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
+class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails, Serializable {
 
     private InetSocketAddress address;
     private Class<T> c;
@@ -254,6 +254,8 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
         }
         return false;
     }
+
+
     private Object handleLocalMethods(Object proxy, Method method, Object[] args) {
         System.err.println("Inside handleLocalMethods");
         Object result;
