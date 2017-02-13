@@ -196,7 +196,7 @@ public class Skeleton<T>
             if(address == null) {
                 System.err.println("address is null");
                 servSocket = new ServerSocket(0);
-                //address = servSocket.getLocalSocketAddress();
+                address = (InetSocketAddress)servSocket.getLocalSocketAddress();
             } else {
                 servSocket = new ServerSocket();
                 servSocket.bind(address);

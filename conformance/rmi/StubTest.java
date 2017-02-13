@@ -48,6 +48,7 @@ public class StubTest extends Test
     @Override
     protected void initialize() throws TestFailed
     {
+        System.err.println ("stub test -- initialize");
         address = new InetSocketAddress(7000);
         listening = true;
 
@@ -77,6 +78,7 @@ public class StubTest extends Test
     @Override
     protected void perform() throws TestFailed
     {
+        System.err.println("stubtest - perform()");
         ensureUnknownHostRejected();
 
         try
@@ -104,6 +106,7 @@ public class StubTest extends Test
      */
     private void ensureStubConnects() throws TestFailed
     {
+        System.err.println("stub test -- ensureStubConnects()");
         TestInterface   stub;
 
         // Create the stub.
@@ -154,6 +157,7 @@ public class StubTest extends Test
     @Override
     protected void clean()
     {
+        System.err.println("stub test - clean");
         skeleton.stop();
 
         try
@@ -173,6 +177,7 @@ public class StubTest extends Test
      */
     private void ensureUnknownHostRejected() throws TestFailed
     {
+        System.err.println("stubtest -- ensure unknown host rejected");
         try
         {
             TestInterface   stub = Stub.create(TestInterface.class, skeleton);
@@ -375,7 +380,9 @@ public class StubTest extends Test
 
         try
         {
+            System.err.println ("stubtest -- before stub 1");
             stub1 = Stub.create(TestInterface.class, skeleton);
+            System.err.println ("stubtest -- before stub 2");
             stub2 = Stub.create(TestInterface.class, skeleton);
         }
         catch(Throwable t)

@@ -29,6 +29,10 @@ import java.io.Serializable;
  */
 public abstract class Stub
 {
+        private Skeleton s                = null;
+        private Class<T> c                = null;
+        private InetSocketAddress address = null;
+
     /** Creates a stub, given a skeleton with an assigned adress.
 
         <p>
@@ -60,19 +64,27 @@ public abstract class Stub
     public static <T> T create(Class<T> c, Skeleton<T> skeleton)
         throws UnknownHostException
     {
+        s = skeleton, this.c = c;
+
+        System.err.println("In T create(Class<T> c, Skeleton<T> skeleton)");
+
         if(c == null || skeleton == null) {
+            System.err.println("Throw Null Pointer");
             throw new NullPointerException();
         }
         
         if(!skeleton.isRemoteInterface(c)) {
+            System.err.println("!isRemoteInterface");
             throw new Error("All methods for class c must throw RMIException");
         }
 
         //TODO maybe separate running
         if(skeleton.getAddress() == null) {
+            System.err.println("seperate address");
             throw new IllegalStateException();
         }
 
+        System.err.println("stub.java - before calling handler");
         // check for no address found for local host
         InvocationHandler handler = new RMIInvocationHandler(skeleton.getAddress());
         T t = (T) java.lang.reflect.Proxy.newProxyInstance(c.getClassLoader(),
@@ -115,6 +127,10 @@ public abstract class Stub
     public static <T> T create(Class<T> c, Skeleton<T> skeleton,
                                String hostname)
     {
+        s = skeleton, this.c = c;
+
+        System.err.println("In T create(Class<T> c, Skeleton<T> skeleton, String hostname)");
+
         if(c == null || skeleton == null || hostname == null) {
             throw new NullPointerException();
         }
@@ -152,6 +168,10 @@ public abstract class Stub
      */
     public static <T> T create(Class<T> c, InetSocketAddress address)
     {
+        this.c = c this.address = address;
+
+        System.err.println("In T create(Class<T> c, InetSocketAddress address)");
+
         if(c == null || address == null) {
             throw new NullPointerException();
         }
@@ -176,6 +196,7 @@ public abstract class Stub
     }
 
     private static class RMIInvocationHandler implements InvocationHandler {
+
         private InetSocketAddress address;
         public RMIInvocationHandler(InetSocketAddress address) {
             this.address = address;
@@ -184,6 +205,9 @@ public abstract class Stub
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
+
+
+            System.err.println("In OBject invoke ");
             Socket socket = new Socket();
 
             try {
@@ -213,6 +237,14 @@ public abstract class Stub
             }
 
             return null;
+        }
+
+        public boolean equals(Object o1, Object o2) {
+
+        }
+
+        public String toString(Object proxy) {
+            return ((Stub) proxy).c.toString();
         }
 
     }
