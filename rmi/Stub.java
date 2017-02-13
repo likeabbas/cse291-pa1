@@ -323,6 +323,7 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws RMIException, Exception{
+    
         System.err.println("In OBject invoke ");
 
         Object result = null;
@@ -353,27 +354,30 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
                 ostream.flush();
                 istream = new ObjectInputStream(socket.getInputStream());
 
+                if(args != null) {
                 for(Object arg : args) {
                     if (!(arg instanceof Serializable)) {
                         throw new RMIException("All objects passed to method must be serializable");
                     }
+                }
                 }
 
                 System.err.println("writing method name");
                 ostream.writeObject(method.getName());
                 ostream.writeObject(method.getParameterTypes());
                 System.err.println("writing arg length");
-                ostream.writeInt(args.length);
-
-
-                System.err.println("writing args");
-                for(Object arg : args) {
-                    ostream.writeObject(arg);
+                if(args != null) {
+                    ostream.writeInt(args.length);
+                    System.err.println("writing args");
+                    for(Object arg : args) {
+                        ostream.writeObject(arg);
+                    }
+                } else {
+                    ostream.writeInt(0);
                 }
 
-                System.err.println("closing ostream");
-
                 System.err.println("reading result");
+
                 result = istream.readObject();
                 System.err.println("finished reading result");
             } catch (Exception e) {
