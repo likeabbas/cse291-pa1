@@ -361,6 +361,7 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
 
                 System.err.println("writing method name");
                 ostream.writeObject(method.getName());
+                ostream.writeObject(method.getParameterTypes());
                 System.err.println("writing arg length");
                 ostream.writeInt(args.length);
 
@@ -371,7 +372,6 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
                 }
 
                 System.err.println("closing ostream");
-                ostream.close();
 
                 System.err.println("reading result");
                 result = istream.readObject();
@@ -389,6 +389,7 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
             try {
 
                 istream.close();
+                ostream.close();
                 return result;
     
 
