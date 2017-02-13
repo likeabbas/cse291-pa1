@@ -40,7 +40,8 @@ UNITCLASSPATH = ".$(CPSEPARATOR)unit"
 # Compile all Java files.
 .PHONY : all-classes
 all-classes :
-	javac -Xlint:unchecked $(JAVAFILES)
+	javac $(JAVAFILES)
+#	javac -Xlint:unchecked $(JAVAFILES)
 
 # Run unit and conformance tests.
 .PHONY : test

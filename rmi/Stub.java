@@ -8,6 +8,8 @@ import java.util.List;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.lang.NoSuchMethodException;
+import java.lang.ClassCastException;
 
 
 
@@ -29,9 +31,6 @@ import java.io.Serializable;
  */
 public abstract class Stub
 {
-        private Skeleton s                = null;
-        private Class<T> c                = null;
-        private InetSocketAddress address = null;
 
     /** Creates a stub, given a skeleton with an assigned adress.
 
@@ -64,7 +63,6 @@ public abstract class Stub
     public static <T> T create(Class<T> c, Skeleton<T> skeleton)
         throws UnknownHostException
     {
-        s = skeleton, this.c = c;
 
         System.err.println("In T create(Class<T> c, Skeleton<T> skeleton)");
 
@@ -86,12 +84,17 @@ public abstract class Stub
 
         System.err.println("stub.java - before calling handler");
         // check for no address found for local host
-        InvocationHandler handler = new RMIInvocationHandler(skeleton.getAddress());
-        T t = (T) java.lang.reflect.Proxy.newProxyInstance(c.getClassLoader(),
-                                          new Class[] { c },
-                                          handler);
-        return t;
+        InvocationHandler handler = new RMIInvocationHandler<T>(skeleton.getAddress(), c);
+        try {
+            T t = (T) java.lang.reflect.Proxy.newProxyInstance(c.getClassLoader(),
+                                              new Class[] { c, ProxyDetails.class },
+                                              handler);
+            return t;
+        } catch(ClassCastException e) {
+            e.printStackTrace();
+        }
 
+        return null;
     }
 
     /** Creates a stub, given a skeleton with an assigned address and a hostname
@@ -127,7 +130,6 @@ public abstract class Stub
     public static <T> T create(Class<T> c, Skeleton<T> skeleton,
                                String hostname)
     {
-        s = skeleton, this.c = c;
 
         System.err.println("In T create(Class<T> c, Skeleton<T> skeleton, String hostname)");
 
@@ -142,11 +144,16 @@ public abstract class Stub
         }
 
         // check for no address found for local host
-        InvocationHandler handler = new RMIInvocationHandler(skeleton.getAddress());
-        T t = (T) java.lang.reflect.Proxy.newProxyInstance(c.getClassLoader(),
-                                          new Class[] { c },
-                                          handler);
-        return t;
+        InvocationHandler handler = new RMIInvocationHandler<T>(skeleton.getAddress(), c);
+        try {
+            T t = (T) java.lang.reflect.Proxy.newProxyInstance(c.getClassLoader(),
+                                              new Class[] { c, ProxyDetails.class },
+                                              handler);
+            return t;
+        } catch(ClassCastException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /** Creates a stub, given the address of a remote server.
@@ -168,8 +175,6 @@ public abstract class Stub
      */
     public static <T> T create(Class<T> c, InetSocketAddress address)
     {
-        this.c = c this.address = address;
-
         System.err.println("In T create(Class<T> c, InetSocketAddress address)");
 
         if(c == null || address == null) {
@@ -186,32 +191,149 @@ public abstract class Stub
 
 
         // check for no address found for local host
-        InvocationHandler handler = new RMIInvocationHandler(address);
-        T t = (T) java.lang.reflect.Proxy.newProxyInstance(c.getClassLoader(),
-                                          new Class[] { c },
-                                          handler);
-        return t;
+        InvocationHandler handler = new RMIInvocationHandler<T>(address, c);
+        try {
+            T t = (T) java.lang.reflect.Proxy.newProxyInstance(c.getClassLoader(),
+                                              new Class[] { c, ProxyDetails.class },
+                                              handler);
+            return t;
+        } catch(ClassCastException e) {
+            e.printStackTrace();
+        }
+        return null;
 
 
     }
 
-    private static class RMIInvocationHandler implements InvocationHandler {
+}
 
-        private InetSocketAddress address;
-        public RMIInvocationHandler(InetSocketAddress address) {
-            this.address = address;
+interface ProxyDetails<T> {
+    public Class<T> getCls(); 
+    public InetSocketAddress getServerAddress();
+}
 
+class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
+
+    private InetSocketAddress address;
+    private Class<T> c;
+    private static Method[] localMethods;
+
+    static {
+        try {
+            localMethods = new Method[] {
+                    Object.class.getMethod("equals", (Class []) new Class [] {Object.class}),
+                    Object.class.getMethod("hashCode"), Object.class.getMethod("toString"),
+                    ProxyDetails.class.getMethod("getServerAddress"),
+                    ProxyDetails.class.getMethod("getCls")
+            };  
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
         }
+    }
 
-        @Override
-        public Object invoke(Object proxy, Method method, Object[] args) {
+    
+    public RMIInvocationHandler(InetSocketAddress address, Class<T> c) {
+        this.c = c;
+        this.address = address;
+    }
 
+    public InetSocketAddress getServerAddress() {
+        return address;
+    }
 
-            System.err.println("In OBject invoke ");
+    public Class<T> getCls() {
+        return c;
+    }
+
+    private boolean isLocalMethod(Method method) {
+        for(Method m : localMethods) {
+            if(method.equals(m)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    private Object handleLocalMethods(Object proxy, Method method, Object[] args) {
+        System.err.println("Inside handleLocalMethods");
+        Object result;
+        try {
+            Method m = Object.class.getMethod("equals", (Class []) new Class [] {Object.class});
+
+            T p = (T) proxy;
+            if(method.equals(m)) {
+                System.err.println("---inside equals case");
+                if(args[0] != null) {
+                    System.err.println("this.getCls() = " + this.getCls());
+              
+                    if(args[0] instanceof ProxyDetails) {
+                        System.err.println("args[0].getCls() " + ((ProxyDetails)args[0]).getCls());
+                    }
+                }
+                if(args[0] == null) {
+                    result = false;
+                } else if(!(args[0] instanceof ProxyDetails)) {
+                    result = false;
+                } else{
+                    T arg = (T) args[0];
+                    result = p.hashCode() == arg.hashCode();
+                }
+                return result;
+            }
+            
+            m = Object.class.getMethod("hashCode");
+            if(method.equals(m)) {
+                return p.toString().hashCode();
+            }
+
+            m = Object.class.getMethod("toString");
+            if(method.equals(m)) {
+                Class<T> c = this.getCls();
+                InetSocketAddress a = this.getServerAddress();
+                StringBuilder sb = new StringBuilder("Remote interface: ");
+
+                if(c != null) {
+                    sb.append(c.getName());
+                } else {
+                    sb.append("null, (hostname, port): ");
+                }
+
+                if(a != null) {
+                    sb.append("(" + a.getHostName() + ", " + a.getPort() + ")" );
+                } else {
+                    sb.append("(null, null)");
+                }
+                        
+                return sb.toString();
+            }
+
+            m = ProxyDetails.class.getMethod("getServerAddress");
+            if(method.equals(m)) {
+                return this.getServerAddress();
+            }
+
+            m = ProxyDetails.class.getMethod("getCls");
+            if(method.equals(m)) {
+                return this.getCls();
+            }
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) {
+        System.err.println("In OBject invoke ");
+
+        Object result = null;
+
+        if(isLocalMethod(method)) {
+            result = handleLocalMethods(proxy, method, args);
+            return result;
+        } else {
             Socket socket = new Socket();
 
             try {
-
                 socket.connect(address);
 
                 ObjectOutputStream ostream = new ObjectOutputStream(socket.getOutputStream());
@@ -231,23 +353,12 @@ public abstract class Stub
                     ostream.writeObject(arg);
                 }
 
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
             return null;
         }
-
-        public boolean equals(Object o1, Object o2) {
-
-        }
-
-        public String toString(Object proxy) {
-            return ((Stub) proxy).c.toString();
-        }
-
     }
 }
-
 
