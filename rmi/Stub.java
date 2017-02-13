@@ -322,7 +322,7 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) {
+    public Object invoke(Object proxy, Method method, Object[] args) throws RMIException, Exception{
         System.err.println("In OBject invoke ");
 
         Object result = null;
@@ -331,14 +331,27 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
             result = handleLocalMethods(proxy, method, args);
             return result;
         } else {
+            
             Socket socket = new Socket();
 
+                /*if(!Arrays.asList(this.getCls().getMethods()).contains(method)) {
+                    throw new RMIException("Method " + method.getName() 
+                        + " is not part of the remote interface " 
+                        + this.getCls().getName());
+                }*/
+
+                // TODO check parameter types
+            Class<?>[] paramTypes = method.getParameterTypes();
+            ObjectOutputStream ostream; 
+            ObjectInputStream  istream;
+                
             try {
+
                 socket.connect(address);
 
-                ObjectOutputStream ostream = new ObjectOutputStream(socket.getOutputStream());
+                ostream = new ObjectOutputStream(socket.getOutputStream());
                 ostream.flush();
-                ObjectInputStream  istream = new ObjectInputStream(socket.getInputStream());
+                istream = new ObjectInputStream(socket.getInputStream());
 
                 for(Object arg : args) {
                     if (!(arg instanceof Serializable)) {
@@ -346,18 +359,43 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
                     }
                 }
 
+                System.err.println("writing method name");
                 ostream.writeObject(method.getName());
+                System.err.println("writing arg length");
                 ostream.writeInt(args.length);
 
+
+                System.err.println("writing args");
                 for(Object arg : args) {
                     ostream.writeObject(arg);
                 }
 
+                System.err.println("closing ostream");
+                ostream.close();
+
+                System.err.println("reading result");
+                result = istream.readObject();
+                System.err.println("finished reading result");
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RMIException("Error invoking method: " + method.getName(), e);
             }
 
-            return null;
+
+            System.err.println("Remote call returned: " + result);
+            if(result instanceof Exception) {
+                throw (Exception)result;
+            }
+
+            try {
+
+                istream.close();
+                return result;
+    
+
+            } catch (Exception e) {
+                throw new RMIException("Error invoking method: " + method.getName(), e);
+            }
+
         }
     }
 }

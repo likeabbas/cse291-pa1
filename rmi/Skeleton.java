@@ -173,6 +173,7 @@ public class Skeleton<T>
      */
     protected void service_error(RMIException exception)
     {
+        System.err.println("CALLING DEFAULT SERVICE_ERROR");
     }
 
     /** Starts the skeleton server.
@@ -278,6 +279,13 @@ public class Skeleton<T>
 
     public ServerSocket getServerSocket() {
         return servSocket;
+    }
+
+    public T getRemoteObject() {
+        return server;
+    }
+    public Class<T> getCls() {
+        return c;
     }
 
 }
