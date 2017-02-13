@@ -364,16 +364,13 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
 
                 System.err.println("writing method name");
                 ostream.writeObject(method.getName());
+                System.err.println("writing param types");
                 ostream.writeObject(method.getParameterTypes());
-                System.err.println("writing arg length");
                 if(args != null) {
-                    ostream.writeInt(args.length);
                     System.err.println("writing args");
                     for(Object arg : args) {
                         ostream.writeObject(arg);
                     }
-                } else {
-                    ostream.writeInt(0);
                 }
 
                 System.err.println("reading result");

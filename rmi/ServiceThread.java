@@ -28,13 +28,13 @@ class ServiceThread<T> implements Runnable {
                 
                 Class<?>[] paramTypes = (Class<?>[]) istream.readObject();
                 System.err.println("paramTypes.length: " + paramTypes.length);
-                int argsLength = (int) istream.readInt();
-                System.err.println("argsLength: " + argsLength);
 
-                Object[] args = new Object[argsLength];
-                for (int i = 0; i < argsLength; i++) {
-                    args[i] = istream.readObject();
-                    System.err.println("args["+i+"] = " + args[i]);
+                Object[] args = new Object[paramTypes.length];
+                if(paramTypes.length > 0) {
+                    for (int i = 0; i < args.length; i++) {
+                        args[i] = istream.readObject();
+                        System.err.println("args["+i+"] = " + args[i]);
+                    }
                 }
                 
                 // TODO catch specific exception
@@ -45,7 +45,9 @@ class ServiceThread<T> implements Runnable {
 
                 Object result = null;
                 try {
+                    System.err.println("about to invoke " + method.getName());
                     result = method.invoke(ror, args);
+                    System.err.println("after invoke");
                 } catch (InvocationTargetException e) {
                     System.err.println("inside catch for invoke");
                     result = e.getCause();
