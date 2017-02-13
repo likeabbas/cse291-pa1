@@ -43,6 +43,7 @@ class ServiceThread<T> implements Runnable {
                 System.err.println("after getting method");
                 T ror = skeleton.getRemoteObject();
 
+                boolean exceptionThrown = false;
                 Object result = null;
                 try {
                     System.err.println("about to invoke " + method.getName());
@@ -50,11 +51,14 @@ class ServiceThread<T> implements Runnable {
                     System.err.println("after invoke");
                 } catch (InvocationTargetException e) {
                     System.err.println("inside catch for invoke");
+                    exceptionThrown = true;
                     result = e.getCause();
                 } catch(Exception e) {
                     e.printStackTrace();
                 }
 
+                System.err.println("writing exception: " + exceptionThrown);
+                ostream.writeBoolean(exceptionThrown);
                 System.err.println("writing result: " + result);
                 ostream.writeObject(result);
                 istream.close();

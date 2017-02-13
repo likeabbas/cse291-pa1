@@ -345,6 +345,7 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
             Class<?>[] paramTypes = method.getParameterTypes();
             ObjectOutputStream ostream; 
             ObjectInputStream  istream;
+            boolean exceptionThrown = false;
                 
             try {
 
@@ -375,6 +376,7 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
 
                 System.err.println("reading result");
 
+                exceptionThrown = istream.readBoolean();
                 result = istream.readObject();
                 System.err.println("finished reading result");
             } catch (Exception e) {
@@ -383,7 +385,7 @@ class RMIInvocationHandler<T> implements InvocationHandler, ProxyDetails {
 
 
             System.err.println("Remote call returned: " + result);
-            if(result instanceof Exception) {
+            if(exceptionThrown) {
                 throw (Exception)result;
             }
 
