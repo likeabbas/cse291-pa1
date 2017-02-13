@@ -139,7 +139,8 @@ public abstract class Stub
         if(!skeleton.isRemoteInterface(c)) {
             throw new Error("All methods for class c must throw RMIException");
         }
-        if(skeleton.getServerSocket().getLocalPort() == -1) {
+        if(skeleton.getServerSocket() == null || 
+           skeleton.getServerSocket().getLocalPort() == -1) {
             throw new IllegalStateException();
         }
 
