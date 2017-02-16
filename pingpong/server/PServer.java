@@ -38,9 +38,9 @@ public class PServer implements PingServer, PingServerFactory {
 
 	public PingServer makePingServer() throws RMIException {
 		if(ps == null) {
-			ps = new Skeleton<PingServer>(PingServer.class, this);
+      InetSocketAddress a = new InetSocketAddress(9876);
+			ps = new Skeleton<PingServer>(PingServer.class, this, a);
 			ps.start();
-			InetSocketAddress a = ps.getAddress();
 			System.out.println("Starting PingServer at address " 
 			+ "(hostname, port) = (" +a.getHostName() + ", "
 			+ a.getPort() + ")");

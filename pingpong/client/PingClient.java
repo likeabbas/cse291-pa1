@@ -10,12 +10,14 @@ import rmi.Stub;
 public class PingClient {
     private static final int NUM_TESTS = 4;
 	public static void main (String args[]) {
+    for(String str : args) {
+      System.out.println(str);
+    }
 		InetSocketAddress address = new InetSocketAddress(args[0], Integer.parseInt(args[1]));
         PingServer ps = null;
         int count = 0;
 		try {
-			PingServerFactory f = Stub.create(PingServerFactory.class,
-										      address);
+			PingServerFactory f = Stub.create(PingServerFactory.class, address);
 
 			ps = f.makePingServer();
             if(ps != null) {
@@ -30,6 +32,7 @@ public class PingClient {
             }
 		} catch (Exception e) {
             System.err.println("Exception occurred");
+            e.printStackTrace();
 		} finally {
             System.out.println(count + " Tests Completed, " 
                 + (NUM_TESTS - count) + " Tests Failed.");
