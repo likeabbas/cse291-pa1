@@ -10,4 +10,6 @@ RUN \
 COPY pingpong/PingServer.java pingpong/PingServer.java
 COPY pingpong/PingServerFactory.java pingpong/PingServerFactory.java
 COPY pingpong/client/PingClient.java pingpong/client/PingClient.java
+COPY Makefile /Makefile
 
+RUN make

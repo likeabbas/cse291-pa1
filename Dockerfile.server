@@ -10,4 +10,7 @@ RUN \
 COPY pingpong/PingServer.java pingpong/PingServer.java
 COPY pingpong/PingServerFactory.java pingpong/PingServerFactory.java
 COPY pingpong/server/PServer.java pingpong/server/PServer.java
+COPY Makefile
 
+RUN make
+ENTRYPOINT java pingpong.server.PServer 8000

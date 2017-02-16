@@ -11,8 +11,9 @@ public class PServer implements PingServer, PingServerFactory {
 	private Skeleton<PingServerFactory> s;
 	private Skeleton<PingServer> ps;
 
-	public PServer() throws RMIException{
-	    s = new Skeleton<PingServerFactory>(PingServerFactory.class, this);
+	public PServer(int port) throws RMIException{
+        InetSocketAddress a = new InetSocketAddress(port);
+	    s = new Skeleton<PingServerFactory>(PingServerFactory.class, this, a);
 		s.start();
 		System.out.println("Starting PingServerFactory at address with");
 		ps = null;
@@ -20,7 +21,7 @@ public class PServer implements PingServer, PingServerFactory {
  
 	public static void main(String args[]) {
 		try {
-			PServer server = new PServer();
+			PServer server = new PServer(Integer.parseInt(args[0]));
 			InetSocketAddress a = server.getFactoryAddress();
 			System.out.println("Starting PingServerFactory at address " 
 				+ "(hostname, port) = (" +a.getHostName() + ", "
